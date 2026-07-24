@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Rift Reaction</title>
+<style>
+    *{ 
+        box-sizing:border-box; 
+        user-select:none; 
+        -webkit-user-select:none; 
+        touch-action:manipulation;
+    }
+
+    body{
+        margin:0;
+        min-height:100vh;
+        font-family:Arial,sans-serif;
+        background:#0f0f1a;
+        color:white;
+        text-align:center;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+    }
+
+    h1{ color:#4c6fff; margin:20px 0 4px 0; }
+
+    #scoreBox{
+        display:inline-flex;
+        gap:20px;
+        background:#141428;
+        border:2px solid #4c6fff;
+        padding:8px 20px;
+        border-radius:10px;
+        margin:10px 0;
+        font-size:16px;
+        font-weight:bold;
+    }
+    #scoreBox span{ color:#4c6fff; }
+
+    .btn-row{ margin-bottom:14px; }
+
+    button.ctrl{
+        padding:10px 15px;
+        border:none;
+        border-radius:8px;
+        cursor:pointer;
+        background:#4c6fff;
+        color:white;
+        font-weight:bold;
+        font-size:14px;
+        margin:5px;
+    }
+    button.ctrl:hover{ background:#9b5cff; }
+
+    #stage{
+        width:340px;
+        max-width:88vw;
+        height:340px;
+        max-height:52vh;
+        margin-top:6px;
+        border-radius:20px;
+        border:3px solid #4c6fff;
+        background:#141428;
+        box-shadow:0 0 20px #4c6fff55;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        flex-direction:column;
+        cursor:pointer;
+        transition:background 0.05s;
+        text-align:center;
+        padding:20px;
+    }
+
+    #stage.wait{ background:#3a1e1e; border-color:#ff6b6b; box-shadow:0 0 20px #ff6b6b55; }
+    #stage.go{ background:#12331f; border-color:#3ddc84; box-shadow:0 0 25px #3ddc8488; }
+    #stage.early{ background:#3a1e1e; border-color:#ff6b6b; }
+
+    #stageLabel{ font-size:22px; font-weight:bold; }
+    
+    #ratingTag{
+        font-size:16px;
+        font-weight:bold;
+        color:#00ffcc;
+        margin-top:8px;
+        text-shadow:0 0 8px rgba(0, 255, 204, 0.4);
+    }
+    #stageSub{ font-size:13px; color:#8a8fa8; margin-top:6px; max-width:270px; line-height:1.4; }
+
+    #description{
+        max-width:420px;
+        font-size:13px;
+        color:#8a8fa8;
+        margin:0 16px 8px 16px;
+    }
+</style>
+</head>
+<body>
+
+<h1>⚡ Rift Reaction</h1>
+
+<p id="description">Click when the box turns green as fast as you can to test your reflexes.</p>
+
+<div id="scoreBox">
+    Best: <span id="bestVal">--</span> ms
+    &nbsp;|&nbsp;
+    Attempts: <span id="attemptsVal">0</span>
+</div>
+
+<div class="btn-row">
+    <button class="ctrl" onclick="resetStats()">Reset Stats</button>
+    <button class="ctrl" onclick="window.location.href='index.html'">Back</button>
+</div>
+
+<div id="stage">
+    <div id="stageLabel">Click to Start</div>
+    <div id="ratingTag"></div>
+    <div id="stageSub">Wait for the box to turn green, then click as fast as you can.</div>
+</div>
+
+<script>
+let state = 'idle';
+let waitTimeout = null;
+let startTime = 0;
+let best = parseInt(localStorage.getItem('riftReactionBest')) || null;
+let attempts = parseInt(localStorage.getItem('riftReactionAttempts')) || 0;
+
+const stage = document.getElementById('stage');
+const label = document.getElementById('stageLabel');
+const rating = document.getElementById('ratingTag');
+const sub = document.getElementById('stageSub');
+
+stage.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    handleInput();
+});
+
+function updateScoreBox(){
+    document.getElementById('bestVal').textContent = best !== null ? Math.round(best) : '--';
+    document.getElementById('attemptsVal').textContent = attempts;
+}
+
+function resetStage(){
+    stage.className = '';
+    label.textContent = 'Click to Start';
+    rating.textContent = '';
+    sub.textContent = 'Wait for the box to turn green, then click as fast as you can.';
+}
+
+function resetStats(){
+    best = null;
+    attempts = 0;
+    localStorage.removeItem('riftReactionBest');
+    localStorage.removeItem('riftReactionAttempts');
+    updateScoreBox();
+    if(waitTimeout) clearTimeout(waitTimeout);
+    state = 'idle';
+    resetStage();
+}
+
+function handleInput(){
+    if(state === 'idle' || state === 'result' || state === 'early'){
+        startRound();
+    } else if(state === 'waiting'){
+        clearTimeout(waitTimeout);
+        state = 'early';
+        stage.className = 'early';
+        label.textContent = 'Too Soon!';
+        rating.textContent = '';
+        sub.textContent = 'You clicked before it turned green. Click to try again.';
+    } else if(state === 'ready'){
+        const reactionTime = performance.now() - startTime;
+        registerResult(reactionTime);
+    }
+}
+
+function startRound(){
+    state = 'waiting';
+    stage.className = 'wait';
+    label.textContent = 'Wait for green...';
+    rating.textContent = '';
+    sub.textContent = 'Don\'t click yet!';
+
+    const delay = 900 + Math.random() * 2200;
+    waitTimeout = setTimeout(() => {
+        state = 'ready';
+        stage.className = 'go';
+        label.textContent = 'CLICK NOW!';
+        sub.textContent = '';
+        startTime = performance.now(); 
+    }, delay);
+}
+
+function registerResult(ms){
+    state = 'result';
+    stage.className = '';
+    const displayMs = Math.round(ms);
+    label.textContent = displayMs + ' ms';
+
+    let ratingTitle = '';
+    let categoryText = '';
+
+    // Expanded 8-Tier Rating System
+    if(displayMs < 160) {
+        ratingTitle = '🚀 Unhuman Speed!';
+        categoryText = 'Top 0.1% Esports tier reflexes';
+    } else if(displayMs < 200) {
+        ratingTitle = '⚡ Godlike Speed!';
+        categoryText = 'Pro gamer level sharpness';
+    } else if(displayMs < 240) {
+        ratingTitle = '🔥 Lightning Reflexes';
+        categoryText = 'Faster than most humans!';
+    } else if(displayMs < 280) {
+        ratingTitle = '🎯 Human Average';
+        categoryText = 'Solid, typical reaction speed';
+    } else if(displayMs < 330) {
+        ratingTitle = '🐢 Warm-up Needed';
+        categoryText = 'A bit sluggish — lock in your focus!';
+    } else if(displayMs < 390) {
+        ratingTitle = '💤 Sleepy Reflexes';
+        categoryText = 'Did you blink? Time for some coffee.';
+    } else if(displayMs < 480) {
+        ratingTitle = '🐌 Turtle Pace';
+        categoryText = 'Heavy input lag or deep in thought?';
+    } else {
+        ratingTitle = '🗿 Asleep at the Wheel';
+        categoryText = 'Did you fall asleep mid-click?';
+    }
+
+    rating.textContent = ratingTitle;
+    sub.textContent = categoryText + ' • Click to try again.';
+
+    attempts++;
+    if(best === null || displayMs < best) best = displayMs;
+
+    localStorage.setItem('riftReactionBest', best);
+    localStorage.setItem('riftReactionAttempts', attempts);
+
+    updateScoreBox();
+}
+
+updateScoreBox();
+</script>
+</body>
+</html>
