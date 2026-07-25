@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Rift Lights Out</title>
+
+<style>
+@import url("https://fonts.googleapis.com/css?family=Lato:400,400i,700");
+
+* {
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Lato', Arial, sans-serif;
+  background: #0f0f1a;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
+
+h1 {
+  width: 100%;
+  text-align: center;
+  color: #4c6fff;
+  text-shadow: 0 0 10px rgba(76, 111, 255, 0.5);
+  margin: 15px 0 10px 0;
+  font-size: 1.8rem;
+}
+
+/* CONTROLS & HUD */
+
+.btn-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+button {
+  background: linear-gradient(135deg, #4c6fff, #2f3cff);
+  color: white;
+  border: 1px solid rgba(76, 111, 255, 0.5);
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+  box-shadow: 0 0 10px rgba(76, 111, 255, 0.25);
+  font-size: 13px;
+}
+
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 18px rgba(76, 111, 255, 0.45);
+}
+
+button.hint-btn {
+  background: linear-gradient(135deg, #ff9f43, #ff5252);
+  border-color: rgba(255, 159, 67, 0.5);
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: #141428;
+  border: 2px solid #4c6fff;
+  padding: 10px 20px;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(76, 111, 255, 0.2);
+  margin-bottom: 15px;
+}
+
+label {
+  color: #ffc;
+  font-size: 16px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#statsBox {
+  display: flex;
+  gap: 20px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+#statsBox span {
+  color: #00ffcc;
+  text-shadow: 0 0 8px rgba(0, 255, 204, 0.4);
+}
+
+/* PLAY AREA & EXPANDED BLUE GRID CONTAINER */
+
+.play-area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 10px;
+}
+
+#board {
+  display: grid;
+  gap: 8px;
+  background: #141428;
+  padding: 16px;
+  border-radius: 20px;
+  border: 3px solid #4c6fff;
+  box-shadow: 0 0 30px rgba(76, 111, 255, 0.45);
+  
+  width: min(520px, 94vw);
+  aspect-ratio: 1;
+  box-sizing: border-box;
+}
+
+.tile {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-sizing: border-box;
+}
+
+.tile.off {
+  background: #1e1f38;
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.6);
+}
+
+.tile.on {
+  background: #00ffcc;
+  box-shadow: 0 0 12px #00ffcc, inset 0 0 6px #ffffff;
+}
+
+/* Dynamic Live Solution Highlight Overlay */
+.tile.solution {
+  border: 3px solid #ff9f43 !important;
+  animation: pulseHint 1s infinite alternate;
+}
+
+@keyframes pulseHint {
+  0% { box-shadow: 0 0 5px #ff9f43; }
+  100% { box-shadow: 0 0 18px #ff9f43; }
+}
+
+.tile:active {
+  transform: scale(0.92);
+}
+
+/* WIN MESSAGE */
+
+#winMsg {
+  margin-top: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #00ffcc;
+  min-height: 24px;
+  text-shadow: 0 0 10px rgba(0,255,204,0.5);
+  text-align: center;
+}
+</style>
+</head>
+
+<body>
+
+<h1>💡 Rift Lights Out</h1>
+
+<div class="btn-row">
+  <button onclick="newGame()">New Puzzle 🔄</button>
+  <button class="hint-btn" onclick="toggleSolution()">Show Solution 💡</button>
+  <button onclick="window.location.href='index.html'">Back ↩️</button>
+</div>
+
+<div class="controls">
+  <label>Grid Size: <span id="gridVal">5x5</span>
+    <input type="range" min="3" max="8" value="5" id="gridSize" oninput="updateGridLabel(this.value)" onchange="newGame()" />
+  </label>
+
+  <div id="statsBox">
+    Moves: <span id="moveCount">0</span>
+  </div>
+</div>
+
+<div class="play-area">
+  <div id="board"></div>
+</div>
+
+<div id="winMsg"></div>
+
+<script>
+let gridSize = 5;
+let moves = 0;
+let grid = []; 
+let currentSolution = []; // Live calculation array for current state
+let showingSolution = false;
+let isGameOver = false;
+
+function updateGridLabel(val) {
+  document.getElementById('gridVal').innerText = `${val}x${val}`;
+}
+
+function newGame() {
+  gridSize = parseInt(document.getElementById('gridSize').value);
+  moves = 0;
+  isGameOver = false;
+  showingSolution = false;
+  document.getElementById('moveCount').innerText = moves;
+  document.getElementById('winMsg').innerText = '';
+
+  let countOn = 0;
+
+  do {
+    grid = Array(gridSize).fill(null).map(() => Array(gridSize).fill(false));
+
+    const numRandomPresses = gridSize * 3;
+    for (let i = 0; i < numRandomPresses; i++) {
+      let rx = Math.floor(Math.random() * gridSize);
+      let ry = Math.floor(Math.random() * gridSize);
+      toggleTileState(rx, ry);
+    }
+
+    countOn = grid.flat().filter(tile => tile).length;
+  } while (countOn === 0);
+
+  if (showingSolution) calculateLiveSolution();
+  renderBoard();
+}
+
+function renderBoard() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  
+  board.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+  board.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
+
+  if (showingSolution) calculateLiveSolution();
+
+  for (let r = 0; r < gridSize; r++) {
+    for (let c = 0; c < gridSize; c++) {
+      const tile = document.createElement('div');
+      
+      let classes = `tile ${grid[r][c] ? 'on' : 'off'}`;
+      if (showingSolution && currentSolution[r] && currentSolution[r][c]) {
+        classes += ' solution';
+      }
+      tile.className = classes;
+
+      tile.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        if (isGameOver) return;
+        handleTileClick(r, c);
+      });
+
+      board.appendChild(tile);
+    }
+  }
+}
+
+function handleTileClick(r, c) {
+  toggleTileState(r, c);
+  moves++;
+  document.getElementById('moveCount').innerText = moves;
+  
+  renderBoard();
+  checkWinCondition();
+}
+
+function toggleTileState(r, c) {
+  const directions = [
+    [0, 0],   // Self
+    [-1, 0],  // Up
+    [1, 0],   // Down
+    [0, -1],  // Left
+    [0, 1]    // Right
+  ];
+
+  directions.forEach(([dr, dc]) => {
+    let nr = r + dr;
+    let nc = c + dc;
+
+    if (nr >= 0 && nr < gridSize && nc >= 0 && nc < gridSize) {
+      grid[nr][nc] = !grid[nr][nc];
+    }
+  });
+}
+
+function toggleSolution() {
+  if (isGameOver) return;
+  showingSolution = !showingSolution;
+  renderBoard();
+}
+
+/**
+ * Solves the Lights Out board from its EXACT CURRENT STATE using Gaussian Elimination modulo 2
+ */
+function calculateLiveSolution() {
+  const n = gridSize * gridSize;
+  let A = Array(n).fill(null).map(() => Array(n + 1).fill(0));
+
+  // Build Linear System (A * x = b mod 2)
+  for (let r = 0; r < gridSize; r++) {
+    for (let c = 0; c < gridSize; c++) {
+      let rowIdx = r * gridSize + c;
+      A[rowIdx][n] = grid[r][c] ? 1 : 0; // target state to turn OFF
+
+      const dirs = [[0,0], [-1,0], [1,0], [0,-1], [0,1]];
+      dirs.forEach(([dr, dc]) => {
+        let nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < gridSize && nc >= 0 && nc < gridSize) {
+          let colIdx = nr * gridSize + nc;
+          A[rowIdx][colIdx] = 1;
+        }
+      });
+    }
+  }
+
+  // Gaussian Elimination in GF(2)
+  let pivotRow = 0;
+  let pivotCols = [];
+
+  for (let col = 0; col < n && pivotRow < n; col++) {
+    let sel = -1;
+    for (let row = pivotRow; row < n; row++) {
+      if (A[row][col] === 1) { sel = row; break; }
+    }
+    if (sel === -1) continue;
+
+    // Swap rows
+    [A[pivotRow], A[sel]] = [A[sel], A[pivotRow]];
+    pivotCols.push(col);
+
+    // Eliminate below & above
+    for (let row = 0; row < n; row++) {
+      if (row !== pivotRow && A[row][col] === 1) {
+        for (let k = col; k <= n; k++) {
+          A[row][k] ^= A[pivotRow][k];
+        }
+      }
+    }
+    pivotRow++;
+  }
+
+  // Back substitution
+  let x = Array(n).fill(0);
+  for (let i = pivotCols.length - 1; i >= 0; i--) {
+    let col = pivotCols[i];
+    let row = i;
+    x[col] = A[row][n];
+  }
+
+  // Format into 2D Array
+  currentSolution = Array(gridSize).fill(null).map(() => Array(gridSize).fill(false));
+  for (let r = 0; r < gridSize; r++) {
+    for (let c = 0; c < gridSize; c++) {
+      currentSolution[r][c] = (x[r * gridSize + c] === 1);
+    }
+  }
+}
+
+function checkWinCondition() {
+  const allOff = grid.every(row => row.every(tile => !tile));
+
+  if (allOff) {
+    isGameOver = true;
+    showingSolution = false;
+    document.getElementById('winMsg').innerText = `🎉 Solved in ${moves} moves!`;
+  }
+}
+
+newGame();
+</script>
+
+</body>
+</html>
