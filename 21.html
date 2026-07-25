@@ -1,1 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Rift 21</title>
 
+<style>
+@import url("https://fonts.googleapis.com/css?family=Lato:400,400i,700");
+
+* {
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Lato', Arial, sans-serif;
+  background: #0f0f1a;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
+
+h1 {
+  width: 100%;
+  text-align: center;
+  color: #4c6fff;
+  text-shadow: 0 0 10px rgba(76, 111, 255, 0.5);
+  margin: 15px 0 10px 0;
+  font-size: 1.8rem;
+}
+
+/* CONTROLS */
+
+.btn-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+button {
+  background: linear-gradient(135deg, #4c6fff, #2f3cff);
+  color: white;
+  border: 1px solid rgba(76, 111, 255, 0.5);
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+  box-shadow: 0 0 10px rgba(76, 111, 255, 0.25);
+  font-size: 14px;
+}
+
+button:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 0 18px rgba(76, 111, 255, 0.45);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+button.action-hit {
+  background: linear-gradient(135deg, #00b894, #00cec9);
+  border-color: rgba(0, 206, 201, 0.5);
+}
+
+button.action-stand {
+  background: linear-gradient(135deg, #ff7675, #d63031);
+  border-color: rgba(255, 118, 117, 0.5);
+}
+
+/* GAME BOARD */
+
+.table {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: #141428;
+  padding: 20px;
+  border-radius: 20px;
+  border: 3px solid #4c6fff;
+  box-shadow: 0 0 30px rgba(76, 111, 255, 0.45);
+  width: min(520px, 94vw);
+  position: relative;
+}
+
+.hand-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.hand-header {
+  font-size: 16px;
+  font-weight: bold;
+  color: #ffc;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 10px;
+}
+
+.cards-container {
+  display: flex;
+  gap: 10px;
+  min-height: 110px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+/* CARD STYLING */
+
+.card {
+  width: 72px;
+  height: 102px;
+  background: #ffffff;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 5px;
+  font-weight: bold;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  animation: dealCard 0.25s ease-out;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+@keyframes dealCard {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.card.red {
+  color: #d63031;
+}
+
+.card.black {
+  color: #2d3436;
+}
+
+.card-corner {
+  line-height: 1.1;
+  text-align: left;
+  font-size: 13px;
+}
+
+.card-corner.bottom {
+  transform: rotate(180deg);
+  text-align: left;
+}
+
+.card-suit-center {
+  font-size: 26px;
+  text-align: center;
+  align-self: center;
+  line-height: 1;
+}
+
+.card-hidden {
+  background: linear-gradient(135deg, #2f3cff, #141428);
+  border: 2px solid #4c6fff;
+  box-shadow: 0 0 10px rgba(76, 111, 255, 0.3);
+}
+
+/* STATUS & POP-UP OVERLAY */
+
+#gameMsg {
+  margin-top: 15px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #00ffcc;
+  min-height: 28px;
+  text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+  text-align: center;
+}
+
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 15, 26, 0.88);
+  backdrop-filter: blur(4px);
+  border-radius: 17px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  z-index: 10;
+  transition: opacity 0.3s ease;
+}
+
+.modal-overlay.hidden {
+  display: none;
+}
+
+.modal-overlay h2 {
+  margin: 0;
+  color: #00ffcc;
+  text-shadow: 0 0 10px rgba(0,255,204,0.4);
+  font-size: 24px;
+}
+
+.modal-overlay button {
+  font-size: 16px;
+  padding: 12px 28px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🃏 Rift 21</h1>
+
+<div class="btn-row">
+  <button id="hitBtn" class="action-hit" onclick="drawCard()" disabled>Draw ➕</button>
+  <button id="standBtn" class="action-stand" onclick="passTurn()" disabled>Hold ✋</button>
+  <button onclick="window.location.href='index.html'">Back ↩️</button>
+</div>
+
+<div class="table">
+  <div id="startModal" class="modal-overlay">
+    <h2 id="modalTitle">Ready to Play?</h2>
+    <button onclick="startRound()">Start Round 🚀</button>
+  </div>
+
+  <div class="hand-section">
+    <div class="hand-header">
+      <span>CPU Opponent</span>
+      <span id="cpuScore">Total: ?</span>
+    </div>
+    <div id="cpuCards" class="cards-container"></div>
+  </div>
+
+  <hr style="width: 100%; border: 1px solid rgba(76, 111, 255, 0.3); margin: 5px 0;">
+
+  <div class="hand-section">
+    <div class="hand-header">
+      <span>Player</span>
+      <span id="playerScore">Total: 0</span>
+    </div>
+    <div id="playerCards" class="cards-container"></div>
+  </div>
+</div>
+
+<div id="gameMsg"></div>
+
+<script>
+const suits = ['♠', '♥', '♦', '♣'];
+const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+
+let deck = [];
+let playerHand = [];
+let cpuHand = [];
+let inGame = false;
+
+// 6-deck shoe for realistic distribution
+function buildDeck() {
+  deck = [];
+  for (let d = 0; d < 6; d++) {
+    for (let suit of suits) {
+      for (let val of values) {
+        deck.push({ suit, value: val });
+      }
+    }
+  }
+}
+
+function shuffleDeck() {
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+}
+
+function getCardValue(card) {
+  if (['J', 'Q', 'K'].includes(card.value)) return 10;
+  if (card.value === 'A') return 11;
+  return parseInt(card.value);
+}
+
+function calculateTotal(hand) {
+  let score = 0;
+  let aces = 0;
+
+  for (let card of hand) {
+    let val = getCardValue(card);
+    score += val;
+    if (card.value === 'A') aces++;
+  }
+
+  while (score > 21 && aces > 0) {
+    score -= 10;
+    aces--;
+  }
+
+  return score;
+}
+
+function startRound() {
+  document.getElementById('startModal').classList.add('hidden');
+
+  if (deck.length < 30) {
+    buildDeck();
+    shuffleDeck();
+  }
+
+  playerHand = [deck.pop(), deck.pop()];
+  cpuHand = [deck.pop(), deck.pop()];
+
+  inGame = true;
+
+  document.getElementById('hitBtn').disabled = false;
+  document.getElementById('standBtn').disabled = false;
+  document.getElementById('gameMsg').innerText = '';
+
+  renderHands(false);
+
+  let pScore = calculateTotal(playerHand);
+  if (pScore === 21) {
+    endRound();
+  }
+}
+
+function drawCard() {
+  if (!inGame) return;
+
+  playerHand.push(deck.pop());
+  renderHands(false);
+
+  let pScore = calculateTotal(playerHand);
+  if (pScore >= 21) {
+    endRound();
+  }
+}
+
+function passTurn() {
+  if (!inGame) return;
+  endRound();
+}
+
+function endRound() {
+  inGame = false;
+  document.getElementById('hitBtn').disabled = true;
+  document.getElementById('standBtn').disabled = true;
+
+  let cpuScore = calculateTotal(cpuHand);
+  let pScore = calculateTotal(playerHand);
+
+  if (pScore <= 21) {
+    while (cpuScore < 17) {
+      cpuHand.push(deck.pop());
+      cpuScore = calculateTotal(cpuHand);
+    }
+  }
+
+  renderHands(true);
+  evaluateOutcome(pScore, cpuScore);
+
+  setTimeout(() => {
+    document.getElementById('modalTitle').innerText = 'Next Round?';
+    document.getElementById('startModal').classList.remove('hidden');
+  }, 1200);
+}
+
+function evaluateOutcome(pScore, cpuScore) {
+  const msg = document.getElementById('gameMsg');
+
+  if (pScore > 21) {
+    msg.innerText = `💥 Over 21 (${pScore})! CPU takes the win.`;
+  } else if (cpuScore > 21) {
+    msg.innerText = `🎉 CPU went over 21 (${cpuScore})! You win!`;
+  } else if (pScore > cpuScore) {
+    msg.innerText = `🎉 You win (${pScore} vs ${cpuScore})!`;
+  } else if (cpuScore > pScore) {
+    msg.innerText = `❌ CPU wins (${cpuScore} vs ${pScore})!`;
+  } else {
+    msg.innerText = `🤝 Tied at ${pScore}!`;
+  }
+}
+
+function renderHands(revealCpu) {
+  const playerContainer = document.getElementById('playerCards');
+  playerContainer.innerHTML = '';
+  playerHand.forEach(card => playerContainer.appendChild(createCardElement(card)));
+  document.getElementById('playerScore').innerText = `Total: ${calculateTotal(playerHand)}`;
+
+  const cpuContainer = document.getElementById('cpuCards');
+  cpuContainer.innerHTML = '';
+
+  if (revealCpu) {
+    cpuHand.forEach(card => cpuContainer.appendChild(createCardElement(card)));
+    document.getElementById('cpuScore').innerText = `Total: ${calculateTotal(cpuHand)}`;
+  } else {
+    cpuContainer.appendChild(createCardElement(cpuHand[0]));
+    
+    const hiddenCard = document.createElement('div');
+    hiddenCard.className = 'card card-hidden';
+    cpuContainer.appendChild(hiddenCard);
+
+    document.getElementById('cpuScore').innerText = `Total: ${getCardValue(cpuHand[0])} + ?`;
+  }
+}
+
+function createCardElement(card) {
+  const div = document.createElement('div');
+  const isRed = ['♥', '♦'].includes(card.suit);
+  div.className = `card ${isRed ? 'red' : 'black'}`;
+
+  div.innerHTML = `
+    <div class="card-corner top">${card.value}<br>${card.suit}</div>
+    <div class="card-suit-center">${card.suit}</div>
+    <div class="card-corner bottom">${card.value}<br>${card.suit}</div>
+  `;
+
+  return div;
+}
+
+buildDeck();
+shuffleDeck();
+</script>
+
+</body>
+</html>
