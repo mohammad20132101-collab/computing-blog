@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Rift Monopoly</title>
+
+<style>
+@import url("https://fonts.googleapis.com/css?family=Lato:400,400i,700");
+
+body, label, div, span {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #4c6fff;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: background 0.8s ease;
+  min-height: 100vh;
+}
+
+h1 {
+  width: 100%;
+  text-align: center;
+  color: white;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+  margin: 14px 0 6px 0;
+}
+
+button {
+  background: linear-gradient(135deg, #4c6fff, #2f3cff);
+  color: white;
+  border: 1px solid rgba(76, 111, 255, 0.5);
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+  box-shadow: 0 0 10px rgba(76, 111, 255, 0.25);
+  font-family: inherit;
+}
+
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 18px rgba(76, 111, 255, 0.45);
+}
+
+button:disabled{
+  opacity:0.4;
+  cursor:not-allowed;
+  transform:none !important;
+}
+
+.btn-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 6px;
+  flex-wrap:wrap;
+}
+
+.header-divider {
+  width: 100%;
+  max-width: 760px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.25);
+  margin: 12px 0;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+}
+
+/* MENU OVERLAY */
+#menu{
+  position:fixed;
+  inset:0;
+  background:#0f0f1a;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:999;
+}
+
+.menuBox{
+  background:#141428;
+  padding:30px;
+  border-radius:15px;
+  border:3px solid #4c6fff;
+  box-shadow:0 0 25px rgba(76,108,255,0.35);
+  text-align:center;
+  max-width:420px;
+  width:90%;
+}
+
+.menuBox h1{
+  color:#4c6fff;
+  margin-bottom:10px;
+  text-shadow:none;
+}
+
+.menuBox p{
+  color:#ccccdd;
+  font:15px Lato;
+  margin-bottom:14px;
+}
+
+.menuBox button{
+  margin:6px;
+  padding:10px 20px;
+}
+
+.setupRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+  background:rgba(255,255,255,0.04);
+  padding:8px 12px;
+  border-radius:10px;
+}
+
+.setupRow span{
+  color:#ffc;
+  font:16px Lato;
+  min-width:80px;
+  text-align:left;
+}
+
+.setupRow input[type=text]{
+  flex-grow:1;
+  border:1px solid rgba(255,255,255,0.15);
+  background:rgba(255,255,255,0.05);
+  color:white;
+  border-radius:6px;
+  padding:6px 8px;
+  font:14px Arial;
+  outline:none;
+  min-width:0;
+}
+
+.setupRow input[type=color]{
+  border:0;
+  width:32px;
+  height:28px;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.setupPreview{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:8px;
+  padding:6px 12px;
+  color:#aaa;
+  font:14px Lato;
+}
+.setupPreview .swatch{
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  border:2px solid rgba(255,255,255,0.4);
+}
+
+.extension-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  text-align: left;
+  font-size: 13px;
+}
+.extension-toggle label {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+/* CONTROLS PANEL */
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width:100%;
+  max-width:760px;
+  padding:0 10px;
+  box-sizing:border-box;
+}
+
+.player {
+  position: relative;
+  justify-content: space-between;
+  width: 100%;
+  height: 34px;
+  display:flex;
+  align-items:center;
+  margin-bottom:8px;
+  padding:4px 12px;
+  border-radius:10px;
+  background: rgba(0,0,0,0.15);
+  transition: box-shadow 0.3s ease, background 0.3s ease;
+  gap:8px;
+}
+
+.player.active-turn{
+  box-shadow: 0 0 0 2px #ffc, 0 0 14px rgba(255,255,204,0.5);
+  background: rgba(0,0,0,0.3);
+}
+
+.player span.name {
+  color: #ffc;
+  font: 16px Lato;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  outline: none;
+  cursor: text;
+  min-width: 90px;
+  max-width: 140px;
+}
+
+.player .aiTag{
+  font-size:11px;
+  color:#8888aa;
+  background:rgba(255,255,255,0.08);
+  padding:2px 6px;
+  border-radius:6px;
+}
+
+.player .swatch{
+  width:16px;
+  height:16px;
+  border-radius:50%;
+  border:2px solid rgba(255,255,255,0.6);
+  flex-shrink:0;
+}
+
+.player .money {
+  justify-content: flex-end;
+  font: 15px Lato;
+  font-weight:bold;
+  color:#c6ffb0;
+  min-width:60px;
+  text-align:right;
+  margin-left:auto;
+}
+
+.player .turn-dot{
+  font-size:20px;
+  color:#ffc;
+  width:18px;
+  text-align:center;
+  opacity:0;
+  transition:opacity 0.3s ease;
+}
+.player.active-turn .turn-dot{
+  opacity:1;
+}
+
+.player.bankrupt{
+  opacity:0.4;
+}
+.player.bankrupt .money::after{
+  content:" 💀";
+}
+
+/* BOARD */
+.play-area {
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:20px;
+  margin:16px 0 30px 0;
+}
+
+#board {
+  display:grid;
+  grid-template-columns: repeat(11, 72px);
+  grid-template-rows: repeat(11, 72px);
+  background:#0d0e18;
+  border-radius:10px;
+  padding:6px;
+  box-shadow: 0 0 25px rgba(0,0,0,0.4);
+}
+
+.cell {
+  background:#f7f7f3;
+  color:#161622;
+  border:1px solid #d4d4cc;
+  font-size:9px;
+  font-weight:bold;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:space-between;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+  padding:3px 2px;
+  line-height:1.1;
+  border-top-width: 1px;
+}
+
+.cell.corner{
+  font-size:10px;
+  justify-content:center;
+  background:#ececE3;
+  gap:2px;
+}
+.cell.corner .cornerIcon{
+  font-size:18px;
+  line-height:1;
+}
+
+.colorBar{
+  width:100%;
+  height:14px;
+  flex-shrink:0;
+  border-radius:2px 2px 0 0;
+  margin-bottom:2px;
+}
+
+.cell .typeIcon{
+  font-size:13px;
+  margin-bottom:1px;
+}
+
+.cell .spaceName{
+  font-size:8.5px;
+  padding:0 1px;
+}
+
+.cell .price{
+  font-size:8px;
+  color:#555;
+  font-weight:normal;
+}
+
+/* Thick Top Line Indicator for Owned Properties */
+.cell.owned-property {
+  border-top: 3.5px solid transparent !important;
+}
+
+.owner-mark{
+  position:absolute;
+  top:3px;
+  right:3px;
+  width:11px;
+  height:11px;
+  border-radius:50%;
+  border:1.5px solid rgba(0,0,0,0.35);
+  box-shadow:0 0 4px rgba(0,0,0,0.3);
+  z-index:6;
+}
+
+.houseMarks{
+  position:absolute;
+  top:3px;
+  left:3px;
+  display:flex;
+  gap:1.5px;
+  z-index:6;
+}
+.houseIcon{
+  width:6px;
+  height:6px;
+  background:#1fb25a;
+  border:1px solid rgba(0,0,0,0.4);
+  border-radius:1px;
+}
+.hotelIcon{
+  width:9px;
+  height:9px;
+  background:#ed1b24;
+  border:1px solid rgba(0,0,0,0.4);
+  border-radius:2px;
+}
+
+.tokenLayer{
+  position:absolute;
+  bottom:3px;
+  left:3px;
+  display:flex;
+  gap:2px;
+  flex-wrap:wrap;
+  z-index:5;
+  max-width:calc(100% - 6px);
+}
+
+.token{
+  width:16px;
+  height:16px;
+  border-radius:50%;
+  border:2px solid white;
+  box-shadow:0 0 5px rgba(0,0,0,0.6);
+  transition: all 0.25s ease;
+  flex-shrink:0;
+}
+
+#center {
+  grid-column: 2 / 11;
+  grid-row: 2 / 11;
+  background:#141428;
+  border-radius:8px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  padding:16px;
+  box-shadow: inset 0 0 30px rgba(76,111,255,0.15);
+}
+
+#center h2{
+  color:#4c6fff;
+  margin:0;
+  font-size:28px;
+  letter-spacing:2px;
+  text-shadow:0 0 12px rgba(76,111,255,0.6);
+}
+
+#diceRow{
+  display:flex;
+  gap:16px;
+  align-items:center;
+}
+
+.dice{
+  width:50px;
+  height:50px;
+  background:white;
+  border-radius:10px;
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  padding:6px;
+  box-sizing:border-box;
+  box-shadow: 0 5px 12px rgba(0,0,0,0.5), inset 0 -4px 0 #ccc;
+  transition: transform 0.05s linear, filter 0.05s linear;
+}
+.dot{
+  background:#141428;
+  border-radius:50%;
+  width:7px;
+  height:7px;
+  margin:auto;
+  visibility:hidden;
+}
+
+.d1 .dot:nth-child(5) { visibility: visible; }
+.d2 .dot:nth-child(1), .d2 .dot:nth-child(9) { visibility: visible; }
+.d3 .dot:nth-child(1), .d3 .dot:nth-child(5), .d3 .dot:nth-child(9) { visibility: visible; }
+.d4 .dot:nth-child(1), .d4 .dot:nth-child(3), .d4 .dot:nth-child(7), .d4 .dot:nth-child(9) { visibility: visible; }
+.d5 .dot:nth-child(1), .d5 .dot:nth-child(3), .d5 .dot:nth-child(5), .d5 .dot:nth-child(7), .d5 .dot:nth-child(9) { visibility: visible; }
+.d6 .dot:nth-child(1), .d6 .dot:nth-child(3), .d6 .dot:nth-child(4), .d6 .dot:nth-child(6), .d6 .dot:nth-child(7), .d6 .dot:nth-child(9) { visibility: visible; }
+
+#logBox{
+  width:100%;
+  max-height:110px;
+  overflow-y:auto;
+  background:rgba(0,0,0,0.25);
+  border-radius:8px;
+  padding:8px 10px;
+  font-size:12px;
+  color:#cfcfe8;
+  text-align:left;
+}
+#logBox div{ margin-bottom:3px; }
+
+/* ACTION MODAL */
+#actionOverlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.6);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:500;
+}
+#actionBox{
+  background:#141428;
+  border:3px solid #9b5cff;
+  box-shadow:0 0 25px rgba(155,92,255,0.4);
+  border-radius:14px;
+  padding:26px 30px;
+  max-width:380px;
+  text-align:center;
+  max-height:80vh;
+  overflow-y:auto;
+}
+#actionBox h3{
+  margin-top:0;
+  color:#9b5cff;
+}
+#actionBox p, #actionBox div{
+  color:#ddd;
+  font-size:14px;
+  line-height:1.5;
+}
+
+@media (max-width: 900px){
+  #board{
+    grid-template-columns: repeat(11, 32px);
+    grid-template-rows: repeat(11, 32px);
+  }
+  .cell{ font-size:5.5px; padding:1px; }
+  .cell .spaceName{ font-size:5px; }
+  .cell .price{ font-size:4.5px; }
+  .cell .typeIcon{ font-size:9px; }
+  .cell.corner .cornerIcon{ font-size:12px; }
+  .colorBar{ height:7px; }
+  .token{ width:9px; height:9px; border-width:1px; }
+  .houseIcon{ width:4px; height:4px; }
+  .hotelIcon{ width:6px; height:6px; }
+  #center h2{ font-size:16px; }
+  .dice{ width:34px; height:34px; padding:4px; }
+  .dot{ width:4px; height:4px; }
+}
+</style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7292845069394911"
+     crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+<div id="menu">
+  <div class="menuBox" id="menuStep0">
+    <h1>🎩 Rift Monopoly</h1>
+    <p>Choose a mode</p>
+    <button onclick="showAIStep()">🧍 1 Player (vs AI)</button>
+    <button onclick="showMultiStep()">👥 Multiplayer</button>
+  </div>
+
+  <div class="menuBox" id="menuStepAI" style="display:none;">
+    <h1>🎩 Rift Monopoly</h1>
+    <p>How many AI opponents?</p>
+    <button onclick="chooseCount(2, true)">1 Opponent</button>
+    <button onclick="chooseCount(3, true)">2 Opponents</button>
+    <button onclick="chooseCount(4, true)">3 Opponents</button>
+  </div>
+
+  <div class="menuBox" id="menuStep1" style="display:none;">
+    <h1>🎩 Rift Monopoly</h1>
+    <p>How many players?</p>
+    <button onclick="chooseCount(2, false)">2 Players</button>
+    <button onclick="chooseCount(3, false)">3 Players</button>
+    <button onclick="chooseCount(4, false)">4 Players</button>
+  </div>
+
+  <div class="menuBox" id="menuStep2" style="display:none;">
+    <h1>🎩 Rift Monopoly</h1>
+    <p id="setupPrompt">Set up your players</p>
+    <div id="setupRows"></div>
+    <button onclick="showExtensionStep()">Next: Extensions ⚙️</button>
+  </div>
+
+  <div class="menuBox" id="menuStepExtensions" style="display:none;">
+    <h1>⚙️ House Rules & Extensions</h1>
+    <p>Configure custom gameplay rules</p>
+    <div class="extension-toggle">
+      <label>
+        <input type="checkbox" id="extFreeParking" checked>
+        <span><strong>Free Parking Pot</strong><br><small style="color:#aaa;">Taxes & fines go into center pot; landing on Free Parking collects it.</small></span>
+      </label>
+    </div>
+    <div class="extension-toggle">
+      <label>
+        <input type="checkbox" id="extQuickJail" checked>
+        <span><strong>Strict Go To Jail</strong><br><small style="color:#aaa;">Passing GO on Chance/Chest 'Go To Jail' does not grant $200.</small></span>
+      </label>
+    </div>
+    <button onclick="startGame()">Start Game</button>
+  </div>
+</div>
+
+<h1>Rift Monopoly</h1>
+
+<div class="btn-row">
+  <button onclick="resetGame()">Reset</button>
+  <button onclick="location.reload()">Menu</button>
+  <button onclick="window.location.href='index.html'">Back</button>
+</div>
+
+<div class="header-divider"></div>
+
+<div class="controls" id="playersPanel"></div>
+
+<div class="play-area">
+  <div id="board"></div>
+</div>
+
+<div id="actionOverlay">
+  <div id="actionBox">
+    <h3 id="actionTitle">Notice</h3>
+    <div id="actionText"></div>
+    <div class="btn-row" id="actionButtons"></div>
+  </div>
+</div>
+
+<script>
+/* ============ BOARD DATA ============ */
+const SPACES = [
+  { name:"GO", type:"go" },
+  { name:"Mediterranean Ave", type:"property", price:60, rentTable:[2,10,30,90,160,250], houseCost:50, group:"brown", houses:0, owner:null },
+  { name:"Community Chest", type:"community" },
+  { name:"Baltic Ave", type:"property", price:60, rentTable:[4,20,60,180,320,450], houseCost:50, group:"brown", houses:0, owner:null },
+  { name:"Income Tax", type:"tax", amount:200 },
+  { name:"Reading Railroad", type:"railroad", price:200, owner:null },
+  { name:"Oriental Ave", type:"property", price:100, rentTable:[6,30,90,270,400,550], houseCost:50, group:"ltblue", houses:0, owner:null },
+  { name:"Chance", type:"chance" },
+  { name:"Vermont Ave", type:"property", price:100, rentTable:[6,30,90,270,400,550], houseCost:50, group:"ltblue", houses:0, owner:null },
+  { name:"Connecticut Ave", type:"property", price:120, rentTable:[8,40,100,300,450,600], houseCost:50, group:"ltblue", houses:0, owner:null },
+  { name:"Jail", type:"jail" },
+  { name:"St. Charles Pl", type:"property", price:140, rentTable:[10,50,150,450,625,750], houseCost:100, group:"pink", houses:0, owner:null },
+  { name:"Electric Company", type:"utility", price:150, owner:null },
+  { name:"States Ave", type:"property", price:140, rentTable:[10,50,150,450,625,750], houseCost:100, group:"pink", houses:0, owner:null },
+  { name:"Virginia Ave", type:"property", price:160, rentTable:[12,60,180,500,700,900], houseCost:100, group:"pink", houses:0, owner:null },
+  { name:"Pennsylvania RR", type:"railroad", price:200, owner:null },
+  { name:"St. James Pl", type:"property", price:180, rentTable:[14,70,200,550,750,950], houseCost:100, group:"orange", houses:0, owner:null },
+  { name:"Community Chest", type:"community" },
+  { name:"Tennessee Ave", type:"property", price:180, rentTable:[14,70,200,550,750,950], houseCost:100, group:"orange", houses:0, owner:null },
+  { name:"New York Ave", type:"property", price:200, rentTable:[16,80,220,600,800,1000], houseCost:100, group:"orange", houses:0, owner:null },
+  { name:"Free Parking", type:"free" },
+  { name:"Kentucky Ave", type:"property", price:220, rentTable:[18,90,250,700,875,1050], houseCost:150, group:"red", houses:0, owner:null },
+  { name:"Chance", type:"chance" },
+  { name:"Indiana Ave", type:"property", price:220, rentTable:[18,90,250,700,875,1050], houseCost:150, group:"red", houses:0, owner:null },
+  { name:"Illinois Ave", type:"property", price:240, rentTable:[20,100,300,750,925,1100], houseCost:150, group:"red", houses:0, owner:null },
+  { name:"B&O Railroad", type:"railroad", price:200, owner:null },
+  { name:"Atlantic Ave", type:"property", price:260, rentTable:[22,110,330,800,975,1150], houseCost:150, group:"yellow", houses:0, owner:null },
+  { name:"Ventnor Ave", type:"property", price:260, rentTable:[22,110,330,800,975,1150], houseCost:150, group:"yellow", houses:0, owner:null },
+  { name:"Water Works", type:"utility", price:150, owner:null },
+  { name:"Marvin Gardens", type:"property", price:280, rentTable:[24,120,360,850,1025,1200], houseCost:150, group:"yellow", houses:0, owner:null },
+  { name:"Go To Jail", type:"gotojail" },
+  { name:"Pacific Ave", type:"property", price:300, rentTable:[26,130,390,900,1100,1275], houseCost:200, group:"green", houses:0, owner:null },
+  { name:"N. Carolina Ave", type:"property", price:300, rentTable:[26,130,390,900,1100,1275], houseCost:200, group:"green", houses:0, owner:null },
+  { name:"Community Chest", type:"community" },
+  { name:"Pennsylvania Ave", type:"property", price:320, rentTable:[28,150,450,1000,1200,1400], houseCost:200, group:"green", houses:0, owner:null },
+  { name:"Short Line RR", type:"railroad", price:200, owner:null },
+  { name:"Chance", type:"chance" },
+  { name:"Park Place", type:"property", price:350, rentTable:[35,175,500,1100,1300,1500], houseCost:200, group:"darkblue", houses:0, owner:null },
+  { name:"Luxury Tax", type:"tax", amount:100 },
+  { name:"Boardwalk", type:"property", price:400, rentTable:[50,200,600,1400,1700,2000], houseCost:200, group:"darkblue", houses:0, owner:null }
+];
+
+const GROUP_COLORS = {
+  brown:"#955436", ltblue:"#aae0fa", pink:"#d93a96", orange:"#f7941d",
+  red:"#ed1b24", yellow:"#fef200", green:"#1fb25a", darkblue:"#0072bb"
+};
+
+const TYPE_ICONS = {
+  railroad:"🚂", utility:"💡", chance:"❓", community:"📦",
+  tax:"💰"
+};
+
+const CORNER_ICONS = { go:"➡️", jail:"🚔", free:"🅿️", gotojail:"🚨" };
+
+function nearestRailroad(pos){
+  const rrIndices = [5,15,25,35];
+  for(let i=0;i<rrIndices.length;i++){ if(rrIndices[i] > pos) return rrIndices[i]; }
+  return rrIndices[0];
+}
+function nearestUtility(pos){
+  const utilIndices = [12,28];
+  for(let i=0;i<utilIndices.length;i++){ if(utilIndices[i] > pos) return utilIndices[i]; }
+  return utilIndices[0];
+}
+function payRepairs(p, perHouse, perHotel){
+  const idx = players.indexOf(p);
+  let total = 0;
+  SPACES.forEach(s=>{
+    if(s.owner === idx && s.type === 'property'){
+      total += s.houses === 5 ? perHotel : s.houses * perHouse;
+    }
+  });
+  if(total > 0) charge(p, total);
+  else log(`${p.name} has no buildings — no repair costs.`);
+}
+
+const CHANCE_CARDS = [
+  { text:"Advance to GO. Collect $200.", effect:p=>{ moveTo(p,0,true); } },
+  { text:"Advance to Illinois Avenue. If you pass GO, collect $200.", effect:p=>{ moveTo(p,24,true); } },
+  { text:"Advance to St. Charles Place. If you pass GO, collect $200.", effect:p=>{ moveTo(p,11,true); } },
+  { text:"Advance to the nearest Railroad. You may buy it if unowned, or pay rent if it's owned.", effect:p=>{ moveTo(p, nearestRailroad(p.pos), true); } },
+  { text:"Advance to the nearest Utility. You may buy it if unowned, or pay rent if it's owned.", effect:p=>{ moveTo(p, nearestUtility(p.pos), true); } },
+  { text:"Bank pays you a dividend of $50.", effect:p=>{ pay(p,50); } },
+  { text:"Get Out of Jail Free card.", effect:p=>{ p.getOutCards++; } },
+  { text:"Go back 3 spaces.", effect:p=>{ moveTo(p, (p.pos - 3 + 40) % 40, false); } },
+  { text:"Go to Jail. Do not pass GO.", effect:p=>{ sendToJail(p); } },
+  { text:"Make general repairs on your property — pay $25 per house and $100 per hotel.", effect:p=>{ payRepairs(p, 25, 100); } },
+  { text:"Speeding fine — pay $15.", effect:p=>{ charge(p,15); } },
+  { text:"Take a trip to Reading Railroad. If you pass GO, collect $200.", effect:p=>{ moveTo(p,5,true); } },
+  { text:"Advance to Boardwalk.", effect:p=>{ moveTo(p,39,true); } },
+  { text:"You have been elected Chairman of the Board — pay each player $50.", effect:p=>{ players.forEach(o=>{ if(o!==p && !o.bankrupt){ transfer(p,o,50); } }); } },
+  { text:"Your building loan matures — collect $150.", effect:p=>{ pay(p,150); } },
+  { text:"You have won a crossword competition — collect $100.", effect:p=>{ pay(p,100); } }
+];
+
+/* Full 16 Official Community Chest Cards */
+const COMMUNITY_CARDS = [
+  { text:"Advance to GO. Collect $200.", effect:p=>{ moveTo(p,0,true); } },
+  { text:"Bank error in your favor — collect $200.", effect:p=>{ pay(p,200); } },
+  { text:"Doctor's fee — pay $50.", effect:p=>{ charge(p,50); } },
+  { text:"From sale of stock you get $50.", effect:p=>{ pay(p,50); } },
+  { text:"Get Out of Jail Free card.", effect:p=>{ p.getOutCards++; } },
+  { text:"Go to Jail. Do not pass GO.", effect:p=>{ sendToJail(p); } },
+  { text:"Holiday fund matures — receive $100.", effect:p=>{ pay(p,100); } },
+  { text:"Income tax refund — collect $20.", effect:p=>{ pay(p,20); } },
+  { text:"It is your birthday — collect $10 from every player.", effect:p=>{ players.forEach(o=>{ if(o!==p && !o.bankrupt){ transfer(o,p,10); } }); } },
+  { text:"Life insurance matures — collect $100.", effect:p=>{ pay(p,100); } },
+  { text:"Pay hospital fees of $100.", effect:p=>{ charge(p,100); } },
+  { text:"Pay school fees of $50.", effect:p=>{ charge(p,50); } },
+  { text:"Receive $25 consultancy fee.", effect:p=>{ pay(p,25); } },
+  { text:"You are assessed for street repairs — pay $40 per house and $115 per hotel.", effect:p=>{ payRepairs(p,40,115); } },
+  { text:"You have won second prize in a beauty contest — collect $10.", effect:p=>{ pay(p,10); } },
+  { text:"You inherit $100.", effect:p=>{ pay(p,100); } }
+];
+
+/* ============ STATE ============ */
+let players = [];
+let currentIndex = 0;
+let doublesCount = 0;
+let awaitingAction = false;
+let canRollAgain = false;
+let gameStarted = false;
+let pendingCount = 2;
+let pendingAIMode = false;
+let freeParkingPot = 0;
+let extFreeParkingEnabled = true;
+let extQuickJailEnabled = true;
+
+const PLAYER_COLORS_DEFAULT = ["#4c6fff", "#9b5cff", "#3fd0ff", "#ff8a5c"];
+
+/* ============ MENU / SETUP ============ */
+function showAIStep(){
+  document.getElementById('menuStep0').style.display = 'none';
+  document.getElementById('menuStepAI').style.display = 'block';
+}
+function showMultiStep(){
+  document.getElementById('menuStep0').style.display = 'none';
+  document.getElementById('menuStep1').style.display = 'block';
+}
+
+function chooseCount(n, isAI){
+  document.getElementById('menuStepAI').style.display = 'none';
+  document.getElementById('menuStep1').style.display = 'none';
+  document.getElementById('menuStep2').style.display = 'block';
+  document.getElementById('setupPrompt').textContent = isAI ? "Set up your player" : "Set up your players";
+
+  pendingCount = n;
+  pendingAIMode = isAI;
+
+  const rows = document.getElementById('setupRows');
+  rows.innerHTML = '';
+
+  const humanCount = isAI ? 1 : n;
+  for(let i=0;i<humanCount;i++){
+    const row = document.createElement('div');
+    row.className = 'setupRow';
+    row.innerHTML = `
+      <span>Player ${i+1}</span>
+      <input type="text" id="setupName${i}" value="Player ${i+1}" maxlength="12">
+      <input type="color" id="setupColor${i}" value="${PLAYER_COLORS_DEFAULT[i]}">
+    `;
+    rows.appendChild(row);
+  }
+
+  if(isAI){
+    for(let i=1;i<n;i++){
+      const preview = document.createElement('div');
+      preview.className = 'setupPreview';
+      preview.innerHTML = `<span class="swatch" style="background:${PLAYER_COLORS_DEFAULT[i]}"></span> AI ${i} joins the game`;
+      rows.appendChild(preview);
+    }
+  }
+}
+
+function showExtensionStep(){
+  document.getElementById('menuStep2').style.display = 'none';
+  document.getElementById('menuStepExtensions').style.display = 'block';
+}
+
+function startGame(){
+  extFreeParkingEnabled = document.getElementById('extFreeParking').checked;
+  extQuickJailEnabled = document.getElementById('extQuickJail').checked;
+  freeParkingPot = 0;
+
+  players = [];
+  const humanCount = pendingAIMode ? 1 : pendingCount;
+  for(let i=0;i<pendingCount;i++){
+    if(i < humanCount){
+      const name = document.getElementById('setupName'+i).value.trim() || ('Player '+(i+1));
+      const color = document.getElementById('setupColor'+i).value;
+      players.push({ name, color, money:1500, pos:0, inJail:false, jailTurns:0, bankrupt:false, getOutCards:0, isAI:false });
+    } else {
+      players.push({ name:'AI '+i, color:PLAYER_COLORS_DEFAULT[i], money:1500, pos:0, inJail:false, jailTurns:0, bankrupt:false, getOutCards:0, isAI:true });
+    }
+  }
+  currentIndex = 0;
+  doublesCount = 0;
+  gameStarted = true;
+  document.getElementById('menu').style.display = 'none';
+  buildBoard();
+  renderPlayersPanel();
+  updateBackground();
+  log('🎩 Game started! ' + players[0].name + ' goes first.');
+  beginRollPhase();
+}
+
+/* ============ BOARD BUILD ============ */
+function getGridPos(i){
+  if(i===0) return {row:11,col:11};
+  if(i>=1 && i<=9) return {row:11, col:11-i};
+  if(i===10) return {row:11,col:1};
+  if(i>=11 && i<=19) return {row:11-(i-10), col:1};
+  if(i===20) return {row:1,col:1};
+  if(i>=21 && i<=29) return {row:1, col:(i-20)+1};
+  if(i===30) return {row:1,col:11};
+  return {row:(i-30)+1, col:11};
+}
+
+function isCorner(i){ return i===0 || i===10 || i===20 || i===30; }
+
+function buildBoard(){
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+
+  const center = document.createElement('div');
+  center.id = 'center';
+  center.innerHTML = `
+    <h2>MONOPOLY</h2>
+    <div id="diceRow">
+      <div class="dice d1" id="die1">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+      <div class="dice d1" id="die2">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button id="rollBtn" onclick="rollDice()">🎲 Roll Dice</button>
+      <button id="housesBtn" onclick="openPropertiesModal()">🏠 Properties</button>
+      <button id="endTurnBtn" onclick="endTurn()" disabled>End Turn</button>
+    </div>
+    <div id="logBox"></div>
+  `;
+  board.appendChild(center);
+
+  SPACES.forEach((space, i)=>{
+    const pos = getGridPos(i);
+    const cell = document.createElement('div');
+    cell.className = 'cell' + (isCorner(i) ? ' corner' : '');
+    cell.style.gridRow = pos.row;
+    cell.style.gridColumn = pos.col;
+    cell.dataset.index = i;
+
+    let inner = '';
+    if(isCorner(i)){
+      inner += `<div class="cornerIcon">${CORNER_ICONS[space.type]}</div>`;
+      inner += `<div class="spaceName">${space.name}</div>`;
+    } else {
+      if(space.group){
+        inner += `<div class="colorBar" style="background:${GROUP_COLORS[space.group]}"></div>`;
+      }
+      if(TYPE_ICONS[space.type]){
+        inner += `<div class="typeIcon">${TYPE_ICONS[space.type]}</div>`;
+      }
+      inner += `<div class="spaceName">${space.name}</div>`;
+      if(space.price){
+        inner += `<div class="price">$${space.price}</div>`;
+      } else if(space.amount){
+        inner += `<div class="price">$${space.amount}</div>`;
+      }
+      inner += `<div class="houseMarks" id="houses${i}"></div>`;
+      inner += `<div class="owner-mark-slot" id="ownerslot${i}"></div>`;
+    }
+    inner += `<div class="tokenLayer" id="tokens${i}"></div>`;
+    cell.innerHTML = inner;
+    board.appendChild(cell);
+  });
+
+  renderOwnership();
+  renderHouses();
+  renderTokens();
+}
+
+/* ============ PLAYERS PANEL ============ */
+function renderPlayersPanel(){
+  const panel = document.getElementById('playersPanel');
+  panel.innerHTML = '';
+  players.forEach((p, idx)=>{
+    const row = document.createElement('div');
+    row.className = 'player' + (idx===currentIndex && !p.bankrupt ? ' active-turn' : '') + (p.bankrupt ? ' bankrupt' : '');
+    row.innerHTML = `
+      <span class="turn-dot">&#9679;</span>
+      <span class="swatch" style="background:${p.color}"></span>
+      <span class="name" contenteditable="${!gameStarted && !p.isAI}" id="pname${idx}">${p.name}</span>
+      ${p.isAI ? '<span class="aiTag">AI</span>' : ''}
+      <span class="money">$${p.money}</span>
+    `;
+    panel.appendChild(row);
+  });
+}
+
+function updateBackground(){
+  if(players.length && !players[currentIndex].bankrupt){
+    document.body.style.background = players[currentIndex].color;
+  }
+}
+
+/* ============ LOG ============ */
+function log(msg){
+  const box = document.getElementById('logBox');
+  if(!box) return;
+  const line = document.createElement('div');
+  line.textContent = msg;
+  box.appendChild(line);
+  box.scrollTop = box.scrollHeight;
+}
+
+/* ============ DICE / TURN FLOW ============ */
+function setDiceFace(el, num){
+  el.className = `dice d${num}`;
+  el.dataset.value = num;
+}
+
+function rollDice(){
+  if(awaitingAction) return;
+  document.getElementById('rollBtn').disabled = true;
+  document.getElementById('housesBtn').disabled = true;
+
+  const die1El = document.getElementById('die1');
+  const die2El = document.getElementById('die2');
+
+  let framesCount = 0;
+  const maxFrames = 18;
+  let currentInterval = 40;
+
+  function performRollLoop(){
+    framesCount++;
+    setDiceFace(die1El, 1 + Math.floor(Math.random()*6));
+    setDiceFace(die2El, 1 + Math.floor(Math.random()*6));
+
+    [die1El, die2El].forEach(el=>{
+      const randX = (Math.random()*16 - 8);
+      const randY = (Math.random()*16 - 8);
+      const randRot = (Math.random()*30 - 15);
+      const blurAmt = currentInterval < 120 ? (160 / currentInterval) : 0;
+      el.style.transform = `translate(${randX}px, ${randY}px) rotate(${randRot}deg)`;
+      el.style.filter = `blur(${blurAmt}px)`;
+    });
+
+    if(framesCount < maxFrames){
+      if(framesCount > 6) currentInterval += 25;
+      if(framesCount > 12) currentInterval += 55;
+      setTimeout(performRollLoop, currentInterval);
+    } else {
+      [die1El, die2El].forEach(el=>{
+        el.style.transform = 'none';
+        el.style.filter = 'none';
+      });
+      const d1 = 1 + Math.floor(Math.random()*6);
+      const d2 = 1 + Math.floor(Math.random()*6);
+      setDiceFace(die1El, d1);
+      setDiceFace(die2El, d2);
+      handleRoll(d1, d2);
+    }
+  }
+  performRollLoop();
+}
+
+function handleRoll(d1, d2){
+  const cur = players[currentIndex];
+  const isDouble = d1 === d2;
+  const total = d1 + d2;
+  log(`${cur.name} rolled ${d1} + ${d2}${isDouble ? ' (double!)' : ''}`);
+
+  if(cur.inJail){
+    if(isDouble){
+      cur.inJail = false;
+      cur.jailTurns = 0;
+      log(`${cur.name} rolled doubles and got out of jail!`);
+      movePlayer(cur, total);
+    } else {
+      cur.jailTurns++;
+      if(cur.jailTurns >= 3){
+        cur.money -= 50;
+        if(extFreeParkingEnabled) freeParkingPot += 50;
+        cur.inJail = false;
+        cur.jailTurns = 0;
+        log(`${cur.name} paid $50 bail after 3 failed rolls.`);
+        renderPlayersPanel();
+        movePlayer(cur, total);
+      } else {
+        log(`${cur.name} stays in jail. (${cur.jailTurns}/3 attempts)`);
+        finishAction();
+      }
+    }
+    return;
+  }
+
+  if(isDouble){
+    doublesCount++;
+    if(doublesCount >= 3){
+      log(`${cur.name} rolled 3 doubles in a row — straight to jail!`);
+      sendToJail(cur);
+      finishAction();
+      return;
+    }
+    canRollAgain = true;
+  } else {
+    doublesCount = 0;
+    canRollAgain = false;
+  }
+
+  movePlayer(cur, total);
+}
+
+function movePlayer(p, steps){
+  awaitingAction = true;
+  let stepsLeft = steps;
+  const stepInterval = setInterval(()=>{
+    p.pos = (p.pos + 1) % 40;
+    if(p.pos === 0){
+      p.money += 200;
+      log(`${p.name} passed GO and collected $200.`);
+    }
+    renderTokens();
+    stepsLeft--;
+    if(stepsLeft <= 0){
+      clearInterval(stepInterval);
+      renderPlayersPanel();
+      resolveSpace(p);
+    }
+  }, 160);
+}
+
+function moveTo(p, index, passGoCredit){
+  awaitingAction = true;
+  const passesGo = passGoCredit && index < p.pos;
+  p.pos = index;
+  if(passesGo){
+    p.money += 200;
+    log(`${p.name} passed GO and collected $200.`);
+  }
+  renderTokens();
+  renderPlayersPanel();
+  resolveSpace(p);
+}
+
+function sendToJail(p){
+  p.pos = 10;
+  p.inJail = true;
+  p.jailTurns = 0;
+  renderTokens();
+  renderPlayersPanel();
+  log(`${p.name} was sent to Jail.`);
+}
+
+/* ============ SPACE RESOLUTION ============ */
+function resolveSpace(p){
+  const space = SPACES[p.pos];
+  log(`${p.name} landed on ${space.name}.`);
+
+  if(space.type === 'property' || space.type === 'railroad' || space.type === 'utility'){
+    if(space.owner === null){
+      showBuyPrompt(p, space);
+      return;
+    } else if(space.owner !== players.indexOf(p)){
+      const rent = calcRent(space, space.owner);
+      const owner = players[space.owner];
+      payRent(p, owner, rent);
+      finishAction();
+      return;
+    } else {
+      log(`${p.name} already owns this.`);
+      finishAction();
+      return;
+    }
+  }
+
+  if(space.type === 'tax'){
+    charge(p, space.amount);
+    if(extFreeParkingEnabled){
+      freeParkingPot += space.amount;
+      log(`$${space.amount} added to Free Parking Pot (Total: $${freeParkingPot}).`);
+    }
+    finishAction();
+    return;
+  }
+
+  if(space.type === 'free'){
+    if(extFreeParkingEnabled && freeParkingPot > 0){
+      log(`🎉 ${p.name} landed on Free Parking and won $${freeParkingPot}!`);
+      p.money += freeParkingPot;
+      freeParkingPot = 0;
+      renderPlayersPanel();
+    } else {
+      log(`${p.name} is resting on Free Parking.`);
+    }
+    finishAction();
+    return;
+  }
+
+  if(space.type === 'chance'){
+    drawCard(p, CHANCE_CARDS, 'Chance');
+    return;
+  }
+
+  if(space.type === 'community'){
+    drawCard(p, COMMUNITY_CARDS, 'Community Chest');
+    return;
+  }
+
+  if(space.type === 'gotojail'){
+    sendToJail(p);
+    finishAction();
+    return;
+  }
+
+  finishAction();
+}
+
+function calcRent(space, ownerIdx){
+  if(space.type === 'property'){
+    return space.rentTable[space.houses];
+  }
+  if(space.type === 'railroad'){
+    const count = SPACES.filter(s=>s.type==='railroad' && s.owner===ownerIdx).length;
+    return [25,50,100,200][count-1] || 25;
+  }
+  if(space.type === 'utility'){
+    const count = SPACES.filter(s=>s.type==='utility' && s.owner===ownerIdx).length;
+    const d1 = parseInt(document.getElementById('die1').dataset.value);
+    const d2 = parseInt(document.getElementById('die2').dataset.value);
+    const roll = (isNaN(d1)||isNaN(d2)) ? 7 : d1+d2;
+    return roll * (count === 2 ? 10 : 4);
+  }
+  return 0;
+}
+
+function payRent(payer, owner, amount){
+  if(payer.money >= amount){
+    payer.money -= amount;
+    owner.money += amount;
+    log(`${payer.name} paid $${amount} rent to ${owner.name}.`);
+    renderPlayersPanel();
+  } else {
+    log(`${payer.name} can't afford $${amount} rent!`);
+    bankrupt(payer, owner);
+  }
+}
+
+function transfer(fromP, toP, amount){
+  if(fromP.money >= amount){
+    fromP.money -= amount;
+    toP.money += amount;
+  } else {
+    toP.money += fromP.money;
+    fromP.money = 0;
+    bankrupt(fromP, toP);
+  }
+  renderPlayersPanel();
+}
+
+function charge(p, amount){
+  if(p.money >= amount){
+    p.money -= amount;
+    log(`${p.name} paid $${amount}.`);
+    renderPlayersPanel();
+  } else {
+    log(`${p.name} can't afford $${amount}!`);
+    bankrupt(p, null);
+  }
+}
+
+function pay(p, amount){
+  p.money += amount;
+  log(`${p.name} received $${amount}.`);
+  renderPlayersPanel();
+}
+
+function bankrupt(p, creditor){
+  p.bankrupt = true;
+  const idx = players.indexOf(p);
+  SPACES.forEach(s=>{
+    if(s.owner === idx){
+      s.owner = null;
+      if('houses' in s) s.houses = 0;
+    }
+  });
+  log(`💀 ${p.name} has gone bankrupt!`);
+  renderOwnership();
+  renderHouses();
+  renderPlayersPanel();
+  checkWin();
+}
+
+function checkWin(){
+  const alive = players.filter(p=>!p.bankrupt);
+  if(alive.length === 1){
+    setTimeout(()=>{
+      showActionModal('🏆 Game Over', `${alive[0].name} wins with $${alive[0].money}!`, [
+        { label:'New Game', action:()=>location.reload() }
+      ]);
+    }, 300);
+  }
+}
+
+/* ============ BUY / CARDS ============ */
+function showBuyPrompt(p, space){
+  awaitingAction = true;
+  const buyAction = ()=>{
+    if(p.money >= space.price){
+      p.money -= space.price;
+      space.owner = players.indexOf(p);
+      log(`${p.name} bought ${space.name} for $${space.price}.`);
+      renderOwnership();
+      renderPlayersPanel();
+    } else {
+      log(`${p.name} can't afford ${space.name}.`);
+    }
+    finishAction();
+  };
+  const skipAction = ()=>{ finishAction(); };
+
+  showActionModal(`Buy ${space.name}?`, `Price: $${space.price}. ${p.name} has $${p.money}.`, [
+    { label:'Buy', action:buyAction },
+    { label:'Skip', action:skipAction }
+  ]);
+
+  if(p.isAI){
+    setTimeout(()=>{
+      document.getElementById('actionOverlay').style.display = 'none';
+      const wantsBuy = (p.money - space.price) >= 150;
+      wantsBuy ? buyAction() : skipAction();
+    }, 900);
+  }
+}
+
+function drawCard(p, deck, label){
+  awaitingAction = true;
+  const card = deck[Math.floor(Math.random()*deck.length)];
+  const proceed = ()=>{
+    card.effect(p);
+    renderPlayersPanel();
+    renderTokens();
+    renderHouses();
+    finishAction();
+  };
+  showActionModal(label, card.text, [{ label:'OK', action:proceed }]);
+
+  if(p.isAI){
+    setTimeout(()=>{
+      document.getElementById('actionOverlay').style.display = 'none';
+      proceed();
+    }, 900);
+  }
+}
+
+function showActionModal(title, text, buttons){
+  document.getElementById('actionTitle').textContent = title;
+  document.getElementById('actionText').innerHTML = `<p>${text}</p>`;
+  const btnRow = document.getElementById('actionButtons');
+  btnRow.innerHTML = '';
+  buttons.forEach(b=>{
+    const btn = document.createElement('button');
+    btn.textContent = b.label;
+    btn.onclick = ()=>{
+      document.getElementById('actionOverlay').style.display = 'none';
+      b.action();
+    };
+    btnRow.appendChild(btn);
+  });
+  document.getElementById('actionOverlay').style.display = 'flex';
+}
+
+/* ============ HOUSES ============ */
+function playerOwnsGroup(idx, group){
+  return SPACES.filter(s=>s.group===group).every(s=>s.owner===idx);
+}
+
+function openPropertiesModal(){
+  if(awaitingAction) return;
+  const idx = currentIndex;
+  const p = players[idx];
+  if(p.isAI) return;
+
+  const groupsOwned = {};
+  SPACES.forEach(s=>{
+    if(s.type==='property' && s.owner===idx && playerOwnsGroup(idx, s.group)){
+      if(!groupsOwned[s.group]) groupsOwned[s.group] = [];
+      groupsOwned[s.group].push(s);
+    }
+  });
+
+  const entries = Object.values(groupsOwned).flat();
+
+  document.getElementById('actionTitle').textContent = '🏠 Build Houses';
+  const textEl = document.getElementById('actionText');
+
+  if(entries.length === 0){
+    textEl.innerHTML = `<p>You don't own a complete color group yet. Own every property in a color group to unlock house building.</p>`;
+  } else {
+    textEl.innerHTML = entries.map(sp=>{
+      const idxInSpaces = SPACES.indexOf(sp);
+      const levelLabel = sp.houses===5 ? 'Hotel 🏨' : (sp.houses>0 ? sp.houses+' house'+(sp.houses>1?'s':'')+' 🏠' : 'No houses');
+      const canBuild = sp.houses<5 && p.money>=sp.houseCost;
+      return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:10px;">
+        <span style="text-align:left;flex-grow:1;">${sp.name}<br><small style="color:#999;">${levelLabel}</small></span>
+        <button ${canBuild?'':'disabled'} onclick="buildHouse(${idxInSpaces})" style="padding:6px 10px;font-size:12px;">+ $${sp.houseCost}</button>
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('actionButtons').innerHTML = '';
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = 'Close';
+  closeBtn.onclick = ()=>{ document.getElementById('actionOverlay').style.display = 'none'; };
+  document.getElementById('actionButtons').appendChild(closeBtn);
+
+  document.getElementById('actionOverlay').style.display = 'flex';
+}
+
+function buildHouse(idx){
+  const space = SPACES[idx];
+  const p = players[currentIndex];
+  if(space.houses < 5 && p.money >= space.houseCost){
+    p.money -= space.houseCost;
+    space.houses++;
+    log(`${p.name} built ${space.houses===5 ? 'a hotel' : 'a house'} on ${space.name}.`);
+    renderPlayersPanel();
+    renderHouses();
+    openPropertiesModal();
+  }
+}
+
+function aiTryBuildHouses(p){
+  const idx = players.indexOf(p);
+  let built = 0;
+  while(built < 3){
+    const candidates = SPACES.filter(s =>
+      s.type==='property' && s.owner===idx && s.houses<5 &&
+      playerOwnsGroup(idx, s.group) && (p.money - s.houseCost) >= 150
+    );
+    if(candidates.length === 0) break;
+    candidates.sort((a,b)=>a.houseCost - b.houseCost);
+    const target = candidates[0];
+    p.money -= target.houseCost;
+    target.houses++;
+    log(`${p.name} (AI) built ${target.houses===5 ? 'a hotel' : 'a house'} on ${target.name}.`);
+    built++;
+  }
+  if(built > 0){
+    renderPlayersPanel();
+    renderHouses();
+  }
+}
+
+/* ============ TURN CONTROL ============ */
+function finishAction(){
+  awaitingAction = false;
+  const alive = players.filter(p=>!p.bankrupt);
+  if(alive.length <= 1) return;
+  const cur = players[currentIndex];
+
+  if(cur.isAI){
+    aiTryBuildHouses(cur);
+  }
+
+  if(canRollAgain && !cur.bankrupt && !cur.inJail){
+    log(`${cur.name} rolled a double — roll again!`);
+    canRollAgain = false;
+    beginRollPhase();
+  } else {
+    document.getElementById('rollBtn').disabled = true;
+    if(cur.isAI){
+      document.getElementById('endTurnBtn').disabled = true;
+      document.getElementById('housesBtn').disabled = true;
+      setTimeout(()=>{ if(!cur.bankrupt) endTurn(); }, 900);
+    } else {
+      document.getElementById('endTurnBtn').disabled = false;
+      document.getElementById('housesBtn').disabled = false;
+    }
+  }
+}
+
+function beginRollPhase(){
+  const cur = players[currentIndex];
+  document.getElementById('endTurnBtn').disabled = true;
+  if(cur.isAI){
+    document.getElementById('rollBtn').disabled = true;
+    document.getElementById('housesBtn').disabled = true;
+    setTimeout(()=>{ if(!cur.bankrupt) rollDice(); }, 900);
+  } else {
+    document.getElementById('rollBtn').disabled = false;
+    document.getElementById('housesBtn').disabled = false;
+  }
+}
+
+function endTurn(){
+  doublesCount = 0;
+  canRollAgain = false;
+  document.getElementById('rollBtn').disabled = true;
+  document.getElementById('endTurnBtn').disabled = true;
+  document.getElementById('housesBtn').disabled = true;
+
+  let next = currentIndex;
+  do {
+    next = (next + 1) % players.length;
+  } while(players[next].bankrupt && next !== currentIndex);
+  currentIndex = next;
+  renderPlayersPanel();
+  updateBackground();
+
+  const cur = players[currentIndex];
+
+  if(cur.inJail){
+    const useCard = ()=>{
+      cur.getOutCards--; cur.inJail=false; cur.jailTurns=0;
+      log(`${cur.name} used a Get Out of Jail Free card.`);
+      renderPlayersPanel();
+      beginRollPhase();
+    };
+    const payBail = ()=>{
+      if(cur.money >= 50){
+        cur.money -= 50; 
+        if(extFreeParkingEnabled) freeParkingPot += 50;
+        cur.inJail=false; cur.jailTurns=0;
+        log(`${cur.name} paid $50 to leave jail.`);
+        renderPlayersPanel();
+      } else {
+        log(`${cur.name} can't afford bail — must try rolling.`);
+      }
+      beginRollPhase();
+    };
+    const tryRoll = ()=>{ beginRollPhase(); };
+
+    if(cur.isAI){
+      log(`${cur.name} (AI) is deciding how to handle Jail...`);
+      let choice;
+      if(cur.getOutCards > 0) choice = useCard;
+      else if(cur.money >= 150) choice = payBail;
+      else choice = tryRoll;
+      setTimeout(choice, 700);
+    } else {
+      const btns = [];
+      if(cur.getOutCards > 0) btns.push({ label:'Use Card', action:useCard });
+      btns.push({ label:'Pay $50', action:payBail });
+      btns.push({ label:'Try Roll', action:tryRoll });
+      showActionModal('You are in Jail', `${cur.name} is in jail. Pay $50, use a card, or try rolling for doubles.`, btns);
+    }
+  } else {
+    log(`— ${cur.name}'s turn —`);
+    beginRollPhase();
+  }
+}
+
+/* ============ RENDER HELPERS ============ */
+function renderOwnership(){
+  SPACES.forEach((space, i)=>{
+    const cellEl = document.querySelector(`.cell[data-index='${i}']`);
+    const slot = document.getElementById('ownerslot'+i);
+    if(!cellEl) return;
+
+    if(space.owner !== undefined && space.owner !== null){
+      const ownerColor = players[space.owner].color;
+      cellEl.classList.add('owned-property');
+      cellEl.style.borderTopColor = ownerColor;
+
+      if(slot){
+        slot.innerHTML = '';
+        const mark = document.createElement('div');
+        mark.className = 'owner-mark';
+        mark.style.background = ownerColor;
+        cellEl.appendChild(mark);
+      }
+    } else {
+      cellEl.classList.remove('owned-property');
+      cellEl.style.borderTopColor = '';
+      const existing = cellEl.querySelector('.owner-mark');
+      if(existing) existing.remove();
+    }
+  });
+}
+
+function renderHouses(){
+  SPACES.forEach((space, i)=>{
+    const layer = document.getElementById('houses'+i);
+    if(!layer) return;
+    layer.innerHTML = '';
+    if(space.type === 'property' && space.houses > 0){
+      if(space.houses === 5){
+        const hotel = document.createElement('div');
+        hotel.className = 'hotelIcon';
+        layer.appendChild(hotel);
+      } else {
+        for(let h=0;h<space.houses;h++){
+          const house = document.createElement('div');
+          house.className = 'houseIcon';
+          layer.appendChild(house);
+        }
+      }
+    }
+  });
+}
+
+function renderTokens(){
+  for(let i=0;i<40;i++){
+    const layer = document.getElementById('tokens'+i);
+    if(layer) layer.innerHTML = '';
+  }
+  players.forEach(p=>{
+    if(p.bankrupt) return;
+    const layer = document.getElementById('tokens'+p.pos);
+    if(layer){
+      const t = document.createElement('div');
+      t.className = 'token';
+      t.style.background = p.color;
+      layer.appendChild(t);
+    }
+  });
+}
+
+/* ============ RESET ============ */
+function resetGame(){
+  if(!gameStarted) return;
+  freeParkingPot = 0;
+  players.forEach(p=>{
+    p.money = 1500; p.pos = 0; p.inJail=false; p.jailTurns=0; p.bankrupt=false; p.getOutCards=0;
+  });
+  SPACES.forEach(s=>{
+    if('owner' in s) s.owner = null;
+    if('houses' in s) s.houses = 0;
+  });
+  currentIndex = 0;
+  doublesCount = 0;
+  buildBoard();
+  document.getElementById('logBox').innerHTML = '';
+  renderPlayersPanel();
+  updateBackground();
+  log('🔄 Game reset.');
+  beginRollPhase();
+}
+</script>
+
+</body>
+</html>
