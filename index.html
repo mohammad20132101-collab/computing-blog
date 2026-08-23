@@ -1482,6 +1482,25 @@
 
       </div>
     </section>
+    <section>
+  <div class="section-title-container">
+    <h2>🌐 External Games 🌐</h2>
+    <input type="text" id="externalSearch" class="search-input" style="max-width: 250px; margin-top: 0;" placeholder="Filter external...">
+  </div>
+  <div class="exclusives-list" id="externalContainer">
+    
+    <div class="game-card" data-external-name="papa louie games">
+      <div class="glass-card-inner">
+        <div class="glass-layer"></div>
+        <div class="glass-content game-info">
+          <h3 class="ex-title">Papa Louie Games</h3>
+          <button class="ex-btn" onclick="window.location.href='papalouie.html'">Explore</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
 
     <section id="historySection">
       <h2 style="text-align: center; margin-top:60px;">🕘 Recently Played</h2>
@@ -2106,6 +2125,17 @@
         });
       });
     }
+    const externalSearchInput = document.getElementById("externalSearch");
+if (externalSearchInput) {
+  externalSearchInput.addEventListener("input", function () {
+    const val = this.value.toLowerCase();
+    document.querySelectorAll("#externalContainer .game-card").forEach(card => {
+      const name = card.getAttribute("data-external-name");
+      if (!name) return;
+      card.style.display = name.toLowerCase().includes(val) ? "" : "none";
+    });
+  });
+}
 
     const passwordInput = document.getElementById("password");
     if (passwordInput) {
