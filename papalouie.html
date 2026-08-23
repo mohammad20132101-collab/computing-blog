@@ -3,228 +3,409 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Papa Louie Games - Rift Hub</title>
+  <title>Papa Louie Arcade - Rift Hub</title>
   <style>
+    /* THEME VARIABLES - DARK MODE (DEFAULT) */
     :root {
-      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
-      --glass-bg: rgba(255, 255, 255, 0.05);
-      --glass-border: rgba(255, 255, 255, 0.12);
-      --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-      --glass-glow: rgba(99, 102, 241, 0.25);
-      --text-main: #f8fafc;
+      --bg-main: #06070d;
+      --bg-card: rgba(255, 255, 255, 0.06);
+      --bg-solid: #0d0e15;
+      --text-main: #ffffff;
       --text-muted: #94a3b8;
-      --accent: #6366f1;
-      --accent-hover: #4f46e5;
-      --card-radius: 16px;
+      --accent: #3b82f6;
+      --accent-glow: rgba(59, 130, 246, 0.25);
+      --border-locked: rgba(239, 68, 68, 0.4);
+      --bg-locked: rgba(20, 20, 35, 0.45);
+      --banner-bg: rgba(30, 30, 55, 0.4);
+      --star-active: #ffb800;
+      --star-inactive: #64748b;
+      --input-bg: rgba(255, 255, 255, 0.05);
+      --input-text: #ffffff;
+      --glass-blur: blur(25px) saturate(210%);
+      --card-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+      --glass-highlight: inset 0 1px 1px 0 rgba(255, 255, 255, 0.15);
+      --card-border: rgba(255, 255, 255, 0.08);
     }
 
+    /* PREMIUM SILVER & BLUE LIGHT MODE */
     body.light-theme {
-      --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #e0e7ff 50%, #f1f5f9 100%);
-      --glass-bg: rgba(255, 255, 255, 0.45);
-      --glass-border: rgba(255, 255, 255, 0.6);
-      --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-      --glass-glow: rgba(99, 102, 241, 0.15);
+      --bg-main: #eef1f7;
+      --bg-card: rgba(219, 234, 254, 0.45);
+      --bg-solid: rgba(255, 255, 255, 0.8);
       --text-main: #0f172a;
-      --text-muted: #64748b;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --text-muted: #475569;
+      --accent: #0066ff;
+      --accent-glow: rgba(0, 102, 255, 0.15);
+      --border-locked: rgba(220, 38, 38, 0.35);
+      --bg-locked: rgba(241, 245, 249, 0.5);
+      --banner-bg: rgba(255, 255, 255, 0.6);
+      --star-active: #f59e0b;
+      --star-inactive: #94a3b8;
+      --input-bg: rgba(0, 0, 0, 0.05);
+      --input-text: #0f172a;
+      --glass-blur: blur(25px) saturate(190%);
+      --card-shadow: 0 16px 40px rgba(30, 58, 110, 0.16), 0 3px 10px rgba(30, 58, 110, 0.12);
+      --glass-highlight: inset 0 1px 1px 0 rgba(255, 255, 255, 0.7);
+      --card-border: rgba(0, 0, 0, 0.08);
     }
 
     body {
-      background: var(--bg-gradient);
-      background-attachment: fixed;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg-main);
       color: var(--text-main);
+      transition: background 0.3s ease, color 0.3s ease;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      transition: background 0.3s ease, color 0.3s ease;
+      justify-content: space-between;
+    }
+
+    body.light-theme {
+      background: linear-gradient(160deg, #fbfcfe 0%, #eef1f8 45%, #dfe6f2 100%);
+      background-attachment: fixed;
+    }
+
+    .glass-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 24px;
+      overflow: hidden;
+      clip-path: inset(0 round 24px);
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
+      isolation: isolate;
+    }
+
+    .glass-layer {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 1;
+      background: var(--bg-card);
+      backdrop-filter: blur(30px) saturate(220%);
+      -webkit-backdrop-filter: blur(30px) saturate(220%);
+      pointer-events: none;
+    }
+
+    .glass-content {
+      position: relative;
+      z-index: 2;
+      pointer-events: auto;
+    }
+
+    .glass-card-inner::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      border-radius: 24px;
+      padding: 1.5px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.22) 45%, rgba(255, 255, 255, 0.1) 100%);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    body.light-theme .glass-card-inner::before {
+      background: linear-gradient(180deg, rgba(59, 130, 246, 0.6) 0%, rgba(59, 130, 246, 0.25) 45%, rgba(59, 130, 246, 0.12) 100%);
+    }
+
+    .glass-card-inner::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background:
+        linear-gradient(160deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 40%),
+        radial-gradient(90% 70% at 100% 100%, rgba(120, 170, 255, 0.1) 0%, rgba(120, 170, 255, 0) 60%);
+      mix-blend-mode: overlay;
+    }
+
+    body.light-theme .glass-card-inner::after {
+      background:
+        linear-gradient(160deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 45%),
+        radial-gradient(90% 70% at 100% 100%, rgba(59, 130, 246, 0.14) 0%, rgba(59, 130, 246, 0) 60%);
+      mix-blend-mode: soft-light;
+    }
+
+    #site {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 20px;
+      box-sizing: border-box;
     }
 
     header {
-      padding: 20px 40px;
+      padding: 30px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: var(--glass-bg);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--glass-border);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      background: var(--bg-solid);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      margin-bottom: 30px;
     }
 
-    .header-controls {
-      display: flex;
-      gap: 12px;
-      align-items: center;
+    body.light-theme header {
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(10px);
     }
 
-    .btn-nav {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid var(--glass-border);
-      color: var(--text-main);
+    header h1 {
+      font-weight: 700;
+      font-size: 34px;
+      margin: 0;
+      letter-spacing: -0.03em;
+    }
+
+    .theme-toggle-btn {
       padding: 8px 16px;
-      border-radius: 8px;
+      font-size: 13px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-main);
+      border-radius: 20px;
       cursor: pointer;
-      backdrop-filter: blur(8px);
-      transition: all 0.2s ease;
-      font-weight: 600;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
+      font-weight: 500;
+      transition: background 0.2s, border-color 0.2s;
     }
 
-    .btn-nav:hover {
-      background: var(--accent);
-      color: #fff;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px var(--glass-glow);
+    body.light-theme .theme-toggle-btn {
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(0, 0, 0, 0.15);
     }
 
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 40px 20px;
+    .search-input {
+      padding: 12px 20px;
       width: 100%;
-      flex: 1;
+      max-width: 320px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--input-bg);
+      color: var(--input-text);
+      font-family: inherit;
+      font-size: 15px;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    body.light-theme .search-input {
+      border: 1px solid #cbd5e1;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
     }
 
     .section-title-container {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-      gap: 16px;
+      margin-top: 20px;
+      margin-bottom: 20px;
     }
 
-    .search-input {
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      color: var(--text-main);
-      padding: 10px 16px;
-      border-radius: 8px;
-      backdrop-filter: blur(8px);
-      outline: none;
-      transition: all 0.2s ease;
-      width: 100%;
-    }
-
-    .search-input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 10px var(--glass-glow);
+    .section-title-container h2 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
     }
 
     .game-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      display: flex;
+      flex-wrap: wrap;
       gap: 20px;
+      padding: 10px 0;
+      justify-content: flex-start;
     }
 
     .game-card {
       position: relative;
-      border-radius: var(--card-radius);
-      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border-radius: 24px;
+      text-align: center;
+      width: calc(33.333% - 14px);
+      box-sizing: border-box;
+      border: 1px solid transparent;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, border-color 0.4s ease;
+      box-shadow: var(--card-shadow);
+      background: transparent;
     }
 
     .game-card:hover {
       transform: translateY(-6px);
+      border-color: var(--accent);
+      box-shadow: 0 15px 30px var(--accent-glow);
     }
 
-    .glass-card-inner {
-      position: relative;
-      border-radius: var(--card-radius);
-      overflow: hidden;
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
+    .game-info {
+      padding: 35px 25px;
+    }
+
+    .game-info h3 {
+      margin: 0 0 20px 0;
+      font-size: 21px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .play-btn {
+      display: inline-block;
+      padding: 12px 28px;
+      border: none;
+      background: var(--accent);
+      color: #ffffff;
+      border-radius: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 120px;
+      box-sizing: border-box;
+    }
+
+    .play-btn:hover {
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+
+    /* IN-PAGE GAME OVERLAY MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      box-shadow: var(--glass-shadow);
-      height: 100%;
-    }
-
-    .glass-layer {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 100%);
-      pointer-events: none;
-    }
-
-    .glass-content {
-      padding: 24px 18px;
-      display: flex;
+      z-index: 1000;
+      display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 12px;
-      text-align: center;
+      padding: 20px;
+      box-sizing: border-box;
     }
 
-    .glass-content h3 {
-      font-size: 1.1rem;
-      font-weight: 600;
+    .modal-overlay.active {
+      display: flex;
     }
 
-    .glass-content button {
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      padding: 8px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.2s ease;
+    .modal-bar {
       width: 100%;
+      max-width: 1000px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
     }
 
-    .glass-content button:hover {
-      background: var(--accent-hover);
-      box-shadow: 0 0 12px var(--glass-glow);
+    .modal-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .close-btn {
+      background: #ef4444;
+      color: #ffffff;
+      border: none;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .close-btn:hover {
+      opacity: 0.9;
+    }
+
+    .game-container-iframe {
+      width: 100%;
+      max-width: 1000px;
+      height: 75vh;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      background: #000000;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+    }
+
+    .game-container-iframe iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
     }
 
     footer {
+      margin-top: 80px;
+      padding: 40px 20px;
+      background: var(--bg-solid);
       text-align: center;
-      padding: 30px;
-      background: var(--glass-bg);
-      backdrop-filter: blur(12px);
-      border-top: 1px solid var(--glass-border);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    footer h3 {
+      margin: 0 0 8px 0;
+      font-size: 1.25rem;
+    }
+
+    footer p {
       color: var(--text-muted);
-      margin-top: auto;
+      margin: 0 0 16px 0;
+      font-size: 0.9rem;
+    }
+
+    a.back-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    a.back-link:hover { color: var(--accent); }
+
+    @media (max-width: 900px) {
+      .game-card { width: calc(50% - 10px); }
+    }
+    @media (max-width: 600px) {
+      .game-card { width: 100%; }
+      .game-container-iframe { height: 60vh; }
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <a href="index.html" class="btn-nav">← Back to Rift Hub</a>
-    <div class="header-controls">
-      <button class="btn-nav" onclick="toggleTheme()">🌓 Theme</button>
-    </div>
-  </header>
+  <button class="theme-toggle-btn" onclick="toggleTheme()" style="position: fixed; top: 25px; right: 25px; z-index: 100;">🌓 Theme</button>
 
-  <div class="container">
+  <div id="site">
+    <header>
+      <h1>🍕 Papa Louie Arcade</h1>
+      <a href="index.html" class="back-link">← Back to Hub</a>
+    </header>
+
     <div class="section-title-container">
-      <h2>🍕 Papa Louie Arcade 🍕</h2>
-      <input type="text" id="papaSearch" class="search-input" style="max-width: 250px;" placeholder="Search Papa's games...">
+      <h2>All Papa's Games</h2>
+      <input type="text" id="papaSearch" class="search-input" placeholder="Search Papa's games...">
     </div>
 
     <div class="game-grid" id="papaGrid">
-      
+
       <div class="game-card" data-name="papa's freezeria">
         <div class="glass-card-inner">
           <div class="glass-layer"></div>
-          <div class="glass-content">
+          <div class="glass-content game-info">
             <h3>Papa's Freezeria</h3>
-            <button onclick="window.open('https://www.crazygames.com/game/papas-freezeria', '_blank')">Play External ↗</button>
+            <button class="play-btn" onclick="openGame('https://www.crazygames.com/embed/papas-freezeria', 'Papa\'s Freezeria')">Play Game</button>
           </div>
         </div>
       </div>
@@ -232,9 +413,9 @@
       <div class="game-card" data-name="papa's pizzeria">
         <div class="glass-card-inner">
           <div class="glass-layer"></div>
-          <div class="glass-content">
+          <div class="glass-content game-info">
             <h3>Papa's Pizzeria</h3>
-            <button onclick="window.open('https://www.crazygames.com/game/papas-pizzeria', '_blank')">Play External ↗</button>
+            <button class="play-btn" onclick="openGame('https://www.crazygames.com/embed/papas-pizzeria', 'Papa\'s Pizzeria')">Play Game</button>
           </div>
         </div>
       </div>
@@ -242,9 +423,9 @@
       <div class="game-card" data-name="papa's burgeria">
         <div class="glass-card-inner">
           <div class="glass-layer"></div>
-          <div class="glass-content">
+          <div class="glass-content game-info">
             <h3>Papa's Burgeria</h3>
-            <button onclick="window.open('https://www.crazygames.com/game/papas-burgeria', '_blank')">Play External ↗</button>
+            <button class="play-btn" onclick="openGame('https://www.crazygames.com/embed/papas-burgeria', 'Papa\'s Burgeria')">Play Game</button>
           </div>
         </div>
       </div>
@@ -252,9 +433,9 @@
       <div class="game-card" data-name="papa's bakeria">
         <div class="glass-card-inner">
           <div class="glass-layer"></div>
-          <div class="glass-content">
+          <div class="glass-content game-info">
             <h3>Papa's Bakeria</h3>
-            <button onclick="window.open('https://www.crazygames.com/game/papas-bakeria', '_blank')">Play External ↗</button>
+            <button class="play-btn" onclick="openGame('https://www.crazygames.com/embed/papas-bakeria', 'Papa\'s Bakeria')">Play Game</button>
           </div>
         </div>
       </div>
@@ -262,9 +443,9 @@
       <div class="game-card" data-name="papa's sushiria">
         <div class="glass-card-inner">
           <div class="glass-layer"></div>
-          <div class="glass-content">
+          <div class="glass-content game-info">
             <h3>Papa's Sushiria</h3>
-            <button onclick="window.open('https://www.crazygames.com/game/papas-sushiria', '_blank')">Play External ↗</button>
+            <button class="play-btn" onclick="openGame('https://www.crazygames.com/embed/papas-sushiria', 'Papa\'s Sushiria')">Play Game</button>
           </div>
         </div>
       </div>
@@ -272,9 +453,9 @@
       <div class="game-card" data-name="papa's cheeseria">
         <div class="glass-card-inner">
           <div class="glass-layer"></div>
-          <div class="glass-content">
+          <div class="glass-content game-info">
             <h3>Papa's Cheeseria</h3>
-            <button onclick="window.open('https://www.crazygames.com/game/papas-cheeseria', '_blank')">Play External ↗</button>
+            <button class="play-btn" onclick="openGame('https://www.crazygames.com/embed/papas-cheeseria', 'Papa\'s Cheeseria')">Play Game</button>
           </div>
         </div>
       </div>
@@ -282,9 +463,9 @@
       <div class="game-card" data-name="papa's pancakeria">
         <div class="glass-card-inner">
           <div class="glass-layer"></div>
-          <div class="glass-content">
+          <div class="glass-content game-info">
             <h3>Papa's Pancakeria</h3>
-            <button onclick="window.open('https://www.crazygames.com/game/papas-pancakeria', '_blank')">Play External ↗</button>
+            <button class="play-btn" onclick="openGame('https://www.crazygames.com/embed/papas-pancakeria', 'Papa\'s Pancakeria')">Play Game</button>
           </div>
         </div>
       </div>
@@ -292,9 +473,9 @@
       <div class="game-card" data-name="papa's wingeria">
         <div class="glass-card-inner">
           <div class="glass-layer"></div>
-          <div class="glass-content">
+          <div class="glass-content game-info">
             <h3>Papa's Wingeria</h3>
-            <button onclick="window.open('https://www.crazygames.com/game/papas-wingeria', '_blank')">Play External ↗</button>
+            <button class="play-btn" onclick="openGame('https://www.crazygames.com/embed/papas-wingeria', 'Papa\'s Wingeria')">Play Game</button>
           </div>
         </div>
       </div>
@@ -302,9 +483,9 @@
       <div class="game-card" data-name="papa's scooperia">
         <div class="glass-card-inner">
           <div class="glass-layer"></div>
-          <div class="glass-content">
+          <div class="glass-content game-info">
             <h3>Papa's Scooperia</h3>
-            <button onclick="window.open('https://www.crazygames.com/game/papas-scooperia', '_blank')">Play External ↗</button>
+            <button class="play-btn" onclick="openGame('https://www.crazygames.com/embed/papas-scooperia', 'Papa\'s Scooperia')">Play Game</button>
           </div>
         </div>
       </div>
@@ -312,29 +493,29 @@
       <div class="game-card" data-name="papa's hot doggeria">
         <div class="glass-card-inner">
           <div class="glass-layer"></div>
-          <div class="glass-content">
+          <div class="glass-content game-info">
             <h3>Papa's Hot Doggeria</h3>
-            <button onclick="window.open('https://www.crazygames.com/game/papas-hot-doggeria', '_blank')">Play External ↗</button>
+            <button class="play-btn" onclick="openGame('https://www.crazygames.com/embed/papas-hot-doggeria', 'Papa\'s Hot Doggeria')">Play Game</button>
           </div>
         </div>
       </div>
 
-      <div class="game-card" data-name="papa's Donuteria">
+      <div class="game-card" data-name="papa's donuteria">
         <div class="glass-card-inner">
           <div class="glass-layer"></div>
-          <div class="glass-content">
+          <div class="glass-content game-info">
             <h3>Papa's Donuteria</h3>
-            <button onclick="window.open('https://www.crazygames.com/game/papas-donuteria', '_blank')">Play External ↗</button>
+            <button class="play-btn" onclick="openGame('https://www.crazygames.com/embed/papas-donuteria', 'Papa\'s Donuteria')">Play Game</button>
           </div>
         </div>
       </div>
 
-      <div class="game-card" data-name="papa meazeria">
+      <div class="game-card" data-name="papa's taco mia">
         <div class="glass-card-inner">
           <div class="glass-layer"></div>
-          <div class="glass-content">
+          <div class="glass-content game-info">
             <h3>Papa's Taco Mia!</h3>
-            <button onclick="window.open('https://www.crazygames.com/game/papas-taco-mia', '_blank')">Play External ↗</button>
+            <button class="play-btn" onclick="openGame('https://www.crazygames.com/embed/papas-taco-mia', 'Papa\'s Taco Mia!')">Play Game</button>
           </div>
         </div>
       </div>
@@ -342,11 +523,34 @@
     </div>
   </div>
 
+  <!-- IN-PAGE IFRAME OVERLAY -->
+  <div id="gameModal" class="modal-overlay">
+    <div class="modal-bar">
+      <div id="modalTitle" class="modal-title">Papa's Game</div>
+      <button class="close-btn" onclick="closeGame()">✕ Close Game</button>
+    </div>
+    <div class="game-container-iframe">
+      <iframe id="gameFrame" src="" allowfullscreen></iframe>
+    </div>
+  </div>
+
   <footer>
-    <p>Rift Hub External Games Catalog • Powered by CrazyGames</p>
+    <h3>Rift Hub</h3>
+    <p>Papa Louie Games Collection</p>
   </footer>
 
   <script>
+    function openGame(embedUrl, title) {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('gameFrame').src = embedUrl;
+      document.getElementById('gameModal').classList.add('active');
+    }
+
+    function closeGame() {
+      document.getElementById('gameModal').classList.remove('active');
+      document.getElementById('gameFrame').src = '';
+    }
+
     function toggleTheme() {
       const isLight = document.body.classList.toggle("light-theme");
       localStorage.setItem("riftTheme", isLight ? "light" : "dark");
@@ -360,7 +564,7 @@
       const val = this.value.toLowerCase();
       document.querySelectorAll("#papaGrid .game-card").forEach(card => {
         const name = card.getAttribute("data-name");
-        card.style.display = name.toLowerCase().includes(val) ? "" : "none";
+        card.style.display = name.toLowerCase().includes(val) ? "block" : "none";
       });
     });
   </script>
