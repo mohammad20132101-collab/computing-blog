@@ -1421,6 +1421,16 @@
             </div>
           </div>
         </div>
+        <div class="game-card" data-name="monopolydeal">
+          <div class="glass-card-inner">
+            <div class="glass-layer"></div>
+            <button class="fav-btn" onclick="window.toggleFavorite('monopolydeal', 'Monopoly Deal', 'monopolydeal.html')">☆</button>
+            <div class="glass-content game-info">
+              <h3>Monopoly Deal</h3>
+              <button onclick="window.openGame('monopolydeal.html','Monopoly Deal')">Play</button>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -1573,7 +1583,7 @@
       simonsays: "arcade", checkers: "strategy", Utictactoe: "strategy",
       hexes: "strategy", sudoku: "puzzle", stack: "arcade", cookieclicker: "arcade",
       crossyroad: "arcade", holdit: "arcade", ludo: "board", subway: "arcade", shutit: "board", battleship: "board", reaction: "arcade", lights: "puzzle", 21: "strategy",
-      monopoly: "board", uno: "strategy"
+      monopoly: "board", uno: "strategy", monopolydeal: "strategy"
     };
 
     const controlsMap = {
@@ -1585,7 +1595,7 @@
       simonsays: "click", checkers: "click", Utictactoe: "click",
       hexes: "click", sudoku: "keyboard", stack: "space", cookieclicker: "click",
       crossyroad: "arrows", holdit: "space", ludo: "click", subway: "arrows", shutit: "click", battleship: "click", reaction: "click", lights: "click", 21: "click",
-      monopoly: "click", uno: "click"
+      monopoly: "click", uno: "click", monopolydeal: "click"
     };
 
     const controlIconInfo = {
@@ -1697,6 +1707,7 @@
       { id: "21", name: "21", page: "21.html" }, 
       { id: "monopoly", name: "Monopoly", page: "monopoly.html" }, 
       { id: "uno", name: "Uno", page: "uno.html" }, 
+      { id: "monopolydeal", name: "Monopoly Deal", page: "monopolydeal.html" }, 
     ];
 
     /* STREAK ENGINE */
